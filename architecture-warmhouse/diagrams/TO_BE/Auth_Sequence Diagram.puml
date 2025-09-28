@@ -1,0 +1,36 @@
+@startuml AuthSequenceDiagram
+title Процесс аутентификации пользователя
+
+actor User as user
+participant "Web App" as web
+participant "API Gateway" as gateway
+participant "Auth Service" as auth
+participant "User Service" as user_service
+participant "Auth DB" as db
+participant "Redis Cache" as cache
+
+user -> web: Вводит email/пароль
+web -> gateway: POST /api/auth/login\n{email, password}
+gateway -> auth: POST /auth/login
+
+auth -> auth: Валидация входных данных
+auth -> user_service: GET /users/validate\n{email}
+user_service --> auth: User exists
+
+auth -> db: SELECT * FROM users WHERE email = ?
+db --> auth: User data
+
+auth -> auth: Проверка пароля (bcrypt)
+auth -> auth: Генерация JWT токенов
+auth -> db: INSERT INTO sessions\n(user_id, device_info)
+db --> auth: Session created
+
+auth -> cache: SETEX session:{id} 3600\n{session_data}
+cache --> auth: OK
+
+auth --> gateway: 200 OK\n{access_token, refresh_token, user_info}
+gateway --> web: 200 OK
+web -> web: Сохранение токена
+web --> user: Успешный вход
+
+@enduml

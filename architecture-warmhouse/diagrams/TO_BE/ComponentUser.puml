@@ -1,0 +1,31 @@
+@startuml UserServiceComponents
+!include architecture-warmhouse\diagrams\templates\C4_Component.puml
+
+title Component Diagram - User Service
+
+
+Container_Boundary(user_service, "User Service"){
+    Component(api_controller, "REST API controller", "RestAPI", "Запросы пользователя")
+    Component(user, "User", "RestAPI", "Логика работы пользователя")
+    Component(profile, "Profile", "RestAPI", "Профиль пользователей")
+    Component(permissions, "Permissions", "RestAPI", "Управление правами и ролевой моделью")
+    Component(device_access, "Device Access", "Python", "Права доступа к устройствам")
+
+    Rel(api_controller, user, "Обрабатывает запросы")
+    Rel(user, profile, "Управление профилями")
+    Rel(user, permissions, "Проверка прав") 
+    Rel(user, device_access, "Доступ к устройствам")
+
+}
+
+ComponentDb(user_db, "User Database", "PostgreSQL", "Пользователи, профили, роли")
+Component(cache, "Redis Cache", "Redis", "Кэш пользователей, разрешений")
+ComponentQueue(message_bus, "Message Bus", "RabbitMQ", "События пользователей")
+Component_Ext(device_service, "Device Service", "RESTAPI", "Проверка устройств")
+
+Rel(user, user_db, "SQLAlchemy", "CRUD операций")
+Rel(permissions, cache, "redis-py", "Кэш разрешений")
+Rel(profile, message_bus, "pika", "События профилей")
+Rel(device_access, device_service, "RESTAPI", "Валидация устройств")
+
+@enduml

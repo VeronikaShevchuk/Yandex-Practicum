@@ -1,0 +1,28 @@
+@startuml DeviceControlSequence
+title Последовательность управления устройством
+
+actor User as user
+participant "Web App" as web
+participant "API Gateway" as gateway
+participant "Auth Service" as auth
+participant "Device Service" as device
+participant "Message Bus" as bus
+participant "Устройство" as hardware
+
+user -> web: Нажимает кнопку включения
+web -> gateway: POST /api/devices/{id}/control
+gateway -> auth: Проверка JWT токена
+auth --> gateway: 200 OK (валидный)
+
+gateway -> device: POST /devices/{id}/control
+device -> device: Проверка прав доступа
+device -> device: Обновление состояния в БД
+device -> hardware: MQTT publish: cmnd/device/power ON
+hardware --> device: MQTT publish: stat/device/power ON
+
+device -> bus: Публикация DeviceStateChanged
+device --> gateway: 200 OK {"status": "success"}
+gateway --> web: 200 OK
+web --> user: Устройство включено
+
+@enduml

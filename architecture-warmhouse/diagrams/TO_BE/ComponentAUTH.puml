@@ -1,0 +1,32 @@
+@startuml AuthServiceComponents
+!include architecture-warmhouse\diagrams\templates\C4_Component.puml
+
+title Component Diagram - Auth Service
+
+
+Container_Boundary(auth_service, "Automation Service") {
+    Component(api_controller, "REST API Controller", "FastAPI", "HTTP endpoints аутентификации")
+    Component(auth_manager, "Auth Manager", "Python", "Основная логика аутентификации")
+    Component(jwt_handler, "JWT Handler", "Python", "Генерация/верификация токенов")
+    Component(password_manager, "Password Manager", "Python", "Хеширование паролей")
+    Component(session_manager, "Session Manager", "Python", "Управление сессиями")
+    Component(oauth_provider, "OAuth Provider", "Python", "OAuth2 интеграции")
+    
+    
+    Rel(api_controller, auth_manager, "Обрабатывает запросы")
+    Rel(auth_manager, jwt_handler, "Генерация токенов")
+    Rel(auth_manager, password_manager, "Валидация паролей")
+    Rel(auth_manager, session_manager, "Управление сессиями")
+    Rel(auth_manager, oauth_provider, "OAuth аутентификация")    
+}
+
+ComponentDb(auth_db, "Auth Database", "PostgreSQL", "Учетные данные, сессии")
+Component(cache, "Redis Cache", "Redis", "Кэш сессий, blacklist токенов")
+ComponentQueue(message_bus, "Message Bus", "RabbitMQ", "События аутентификации")
+
+Rel(auth_manager, auth_db, "PostgreSQL", "Проверка учетных данных")
+Rel(session_manager, cache, "redis-py", "Хранение сессий")
+Rel(jwt_handler, cache, "redis-py", "Blacklist токенов")
+Rel(auth_manager, message_bus, "pika", "Публикация событий аутентификации")
+
+@enduml

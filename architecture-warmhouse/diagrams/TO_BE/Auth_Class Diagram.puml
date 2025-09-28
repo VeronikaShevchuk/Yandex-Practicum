@@ -1,0 +1,79 @@
+@startuml AuthServiceClasses
+class AuthController {
+    - auth_service: AuthService
+    + login()
+    + register()
+    + refresh_token()
+    + logout()
+    + verify_token()
+}
+
+class AuthService {
+    - user_repository: UserRepository
+    - session_repository: SessionRepository
+    - jwt_provider: JWTProvider
+    - password_hasher: PasswordHasher
+    - user_service_client: UserServiceClient
+    + authenticate()
+    + register_user()
+    + refresh_access_token()
+    + revoke_token()
+    + validate_token()
+}
+
+class JWTProvider {
+    - secret_key: str
+    - algorithm: str
+    + generate_access_token()
+    + generate_refresh_token()
+    + verify_token()
+    + decode_token()
+}
+
+class PasswordHasher {
+    + hash_password()
+    + verify_password()
+}
+
+class UserRepository {
+    - session: AsyncSession
+    + find_by_email()
+    + find_by_id()
+    + create_user()
+}
+
+class SessionRepository {
+    - session: AsyncSession
+    + create_session()
+    + find_session()
+    + delete_session()
+}
+
+class UserServiceClient {
+    - http_client: AsyncClient
+    + validate_user()
+    + create_user_profile()
+}
+
+class OAuthManager {
+    - providers: Dict[str, OAuthProvider]
+    + get_authorization_url()
+    + handle_callback()
+}
+
+class RateLimiter {
+    - redis_client: Redis
+    + check_rate_limit()
+    + increment_attempts()
+}
+
+AuthController --> AuthService
+AuthService --> UserRepository
+AuthService --> SessionRepository
+AuthService --> JWTProvider
+AuthService --> PasswordHasher
+AuthService --> UserServiceClient
+AuthService --> OAuthManager
+AuthService --> RateLimiter
+
+@enduml
