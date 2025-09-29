@@ -18,13 +18,13 @@ System_Boundary(ecosystem, "Экосистема Умного Дома") {
     Container(telemetry_service, "Telemetry Service", "Python", "Телеметрия")
     Container(automation_service, "Automation Service", "Python", "Сценарии и правила автоматизации")
     Container(notification_service, "Notification Service", "Python", "Уведомления")
-    Container(partners_integration_servise, "Partners Integration Servise", "Python", "Интеграция с устройствами партнёров")
     
     ContainerDb(auth_db, "Auth Database", "PostgreSQL", "Учетные данные, сессии")
     ContainerDb(user_db, "User Database", "PostgreSQL", "Профили, настройки")
     ContainerDb(device_db, "Device Database", "PostgreSQL", "Реестр устройств, конфигурации")
     ContainerDb(telemetry_db, "TimeSeries DB", "PostgreSQL", "Метрики")
     ContainerDb(automation_db, "Automation DB", "PostgreSQL", "Правила, сценарии, триггеры")
+    ContainerDb(notification_db, "Notification DB", "PostgreSQL", "Уведомления, шаблоны, настройки")
     
     ContainerQueue(message_bus, "Message Bus", "RabbitMQ", "Асинхронные события")
     Container(cache, "Cache Layer", "Redis", "Кэширование данных")
@@ -35,7 +35,6 @@ System_Ext(device2, "Умный выключатель", "Устройство �
 System_Ext(device3, "Умные ворота", "Устройство партнёра")
 System_Ext(smtp, "SMTP Сервер", "Отправка email")
 System_Ext(push, "Push Сервис", "FCM/APNS для мобильных уведомлений")
-System_Ext(partnerSystem, "Партнерская система")
 
 ' Connections - REST API
 Rel(owner, web, "Использует", "HTTPS")
@@ -51,7 +50,6 @@ Rel(gateway, device_service, "REST API", "HTTP/JSON")
 Rel(gateway, telemetry_service, "REST API", "HTTP/JSON")
 Rel(gateway, automation_service, "REST API", "HTTP/JSON")
 Rel(gateway, notification_service, "REST API", "HTTP/JSON")
-Rel(gateway, partners_integration_servise, "REST API", "HTTP/JSON")
 
 ' Service-to-service REST communication
 Rel(auth_service, user_service, "REST API", "Валидация пользователей")
@@ -68,8 +66,9 @@ Rel(notification_service, message_bus, "AMQP", "Подписывается на 
 Rel(auth_service, auth_db, "SQL", "PostgreSQL")
 Rel(user_service, user_db, "SQL", "PostgreSQL")
 Rel(device_service, device_db, "SQL", "PostgreSQL")
-Rel(telemetry_service, telemetry_db, "SQL", "TimescaleDB")
+Rel(telemetry_service, telemetry_db, "SQL", "PostgreSQL")
 Rel(automation_service, automation_db, "SQL", "PostgreSQL")
+Rel(notification_service, notification_db, "SQL", "PostgreSQL")
 
 ' Cache connections
 Rel(auth_service, cache, "Redis Protocol", "Кэш сессий")
@@ -81,6 +80,5 @@ Rel(device_service, device2, "MQTT/HTTP", "Управляет устройств
 Rel(device_service, device3, "MQTT/HTTP", "Управляет устройствами")
 Rel(notification_service, smtp, "SMTP", "Отправка email")
 Rel(notification_service, push, "HTTP", "Push уведомления")
-Rel(device_service, partnerSystem, "MQTT/HTTP", "Получение данных")
 
 @enduml

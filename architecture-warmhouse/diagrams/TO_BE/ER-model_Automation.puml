@@ -1,0 +1,94 @@
+@startuml AutomationService_ERD
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+
+hide methods
+hide stereotypes
+
+table(automation_rules) {
+  primary_key(id) UUID
+  foreign_key(house_id) UUID
+  foreign_key(user_id) UUID
+  name VARCHAR(255)
+  description TEXT
+  trigger_type VARCHAR(50)
+  trigger_config JSONB
+  conditions JSONB
+  actions JSONB
+  enabled BOOLEAN
+  priority INTEGER
+  execution_count INTEGER
+  last_triggered_at TIMESTAMPTZ
+  last_executed_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ
+}
+
+table(automation_scenes) {
+  primary_key(id) UUID
+  foreign_key(house_id) UUID
+  foreign_key(user_id) UUID
+  name VARCHAR(255)
+  description TEXT
+  actions JSONB
+  icon VARCHAR(50)
+  enabled BOOLEAN
+  created_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ
+}
+
+table(automation_triggers) {
+  primary_key(id) UUID
+  foreign_key(rule_id) UUID
+  trigger_type VARCHAR(50)
+  trigger_config JSONB
+  schedule_expression VARCHAR(255)
+  device_id UUID
+  metric_name VARCHAR(100)
+  condition JSONB
+  cooldown_seconds INTEGER
+}
+
+table(automation_actions) {
+  primary_key(id) UUID
+  foreign_key(rule_id) UUID
+  action_type VARCHAR(50)
+  action_config JSONB
+  device_id UUID
+  command VARCHAR(100)
+  parameters JSONB
+  delay_seconds INTEGER
+  order_index INTEGER
+}
+
+table(automation_executions) {
+  primary_key(id) UUID
+  foreign_key(rule_id) UUID
+  trigger_type VARCHAR(50)
+  trigger_data JSONB
+  execution_status VARCHAR(20)
+  started_at TIMESTAMPTZ
+  completed_at TIMESTAMPTZ
+  error_message TEXT
+  execution_log JSONB
+}
+
+table(automation_conditions) {
+  primary_key(id) UUID
+  foreign_key(rule_id) UUID
+  condition_type VARCHAR(50)
+  left_operand JSONB
+  operator VARCHAR(20)
+  right_operand JSONB
+  logical_operator VARCHAR(10)
+  order_index INTEGER
+}
+
+' Relationships
+automation_rules ||--o{ automation_triggers : "has_triggers"
+automation_rules ||--o{ automation_actions : "has_actions"
+automation_rules ||--o{ automation_conditions : "has_conditions"
+automation_rules ||--o{ automation_executions : "has_executions"
+houses ||--o{ automation_scenes : "has_scenes"
+
+@enduml

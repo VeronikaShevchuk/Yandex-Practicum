@@ -1,0 +1,35 @@
+@startuml NotificationServiceComponents
+!include architecture-warmhouse\diagrams\templates\C4_Component.puml
+
+title Component Diagram - Notification Service
+
+
+Container_Boundary(notification_service, "Notification Service"){
+    Component(api_controller, "REST API Controller", "FastAPI", "API уведомлений")
+    Component(notification_manager, "Notification Manager", "Python", "Основная логика уведомлений")
+    Component(template_engine, "Template Engine", "Python", "Генерация контента")
+    Component(multi_channel_dispatcher, "Multi-Channel Dispatcher", "Python", "Отправка по каналам")
+    Component(preference_manager, "Preference Manager", "Python", "Настройки уведомлений")
+    Component(delivery_tracker, "Delivery Tracker", "Python", "Отслеживание доставки")
+    Component(rate_limiter, "Rate Limiter", "Python", "Ограничение частоты")
+    
+    Rel(api_controller, notification_manager, "Обработка запросов")
+    Rel(notification_manager, template_engine, "Генерация контента")
+    Rel(notification_manager, multi_channel_dispatcher, "Отправка по каналам")
+    Rel(notification_manager, preference_manager, "Проверка настроек")
+    Rel(multi_channel_dispatcher, delivery_tracker, "Отслеживание доставки")
+    Rel(notification_manager, rate_limiter, "Проверка лимитов")
+
+}
+
+ComponentDb(notification_db, "Notification DB", "PostgreSQL", "Уведомления, шаблоны, настройки")
+Component(cache, "Redis Cache", "Redis", "Кэш шаблонов, лимиты")
+ComponentQueue(message_bus, "Message Bus", "RabbitMQ", "События для уведомлений")
+Component_Ext(user_service, "User Service", "REST API", "Получение пользователей")
+
+Rel(notification_manager, notification_db, "SQLAlchemy", "Сохранение уведомлений")
+Rel(template_engine, cache, "redis-py", "Кэш шаблонов")
+Rel(preference_manager, user_service, "REST API", "Настройки пользователей")
+Rel(notification_manager, message_bus, "pika", "Подписка на события")
+
+@enduml

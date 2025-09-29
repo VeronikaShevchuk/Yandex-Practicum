@@ -1,7 +1,7 @@
 @startuml TelemetryServiceComponents
 !include architecture-warmhouse\diagrams\templates\C4_Component.puml
 
-title Component Diagram - User Service
+title Component Diagram - Telemetry Service
 
 
 Container_Boundary(telemetry_service, "Telemetry Service"){

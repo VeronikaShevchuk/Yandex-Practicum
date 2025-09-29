@@ -150,15 +150,34 @@
 ```markdown
 [Telemetry Service Component](architecture-warmhouse\diagrams\TO_BE\ComponentTelemetr.puml)
 ```
+
+```markdown
+[Notification Service Component](architecture-warmhouse\diagrams\TO_BE\ComponentNot.puml)
+```
+
 **Диаграмма кода (Code)**
 
 ```markdown
 [Sequence Diagram - Управление устройством](architecture-warmhouse\diagrams\TO_BE\Sequence Diagram.puml)
 ```
 
+```markdown
+[Class Diagram - Управленяи устройством](architecture-warmhouse\diagrams\TO_BE\Class Diagram.puml)
+```
 # Задание 3. Разработка ER-диаграммы
 
-Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
+```markdown
+[ER-model_User](architecture-warmhouse\diagrams\TO_BE\ER-model_User.puml)
+```
+```markdown
+[ER-model_Telemetry](architecture-warmhouse\diagrams\TO_BE\ER-model_Telemetry.puml)
+```
+```markdown
+[ER-model_Device](architecture-warmhouse\diagrams\TO_BE\ER-model_Device.puml)
+```
+```markdown
+[ER-model_Automation](architecture-warmhouse\diagrams\TO_BE\ER-model_Automation.puml)
+```
 
 # Задание 4. Создание и документирование API
 

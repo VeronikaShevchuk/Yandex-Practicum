@@ -1,0 +1,82 @@
+@startuml TelemetryService_ERD
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+
+hide methods
+hide stereotypes
+
+table(telemetry_metrics) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  metric_name VARCHAR(100)
+  value DOUBLE PRECISION
+  unit VARCHAR(20)
+  timestamp TIMESTAMPTZ
+  received_at TIMESTAMPTZ
+  tags JSONB
+  quality INTEGER
+}
+
+table(telemetry_aggregations) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  metric_name VARCHAR(100)
+  aggregation_type VARCHAR(20)
+  time_bucket TIMESTAMPTZ
+  avg_value DOUBLE PRECISION
+  min_value DOUBLE PRECISION
+  max_value DOUBLE PRECISION
+  count_value INTEGER
+  sum_value DOUBLE PRECISION
+}
+
+table(telemetry_alerts) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  alert_name VARCHAR(255)
+  condition JSONB
+  severity VARCHAR(20)
+  triggered_at TIMESTAMPTZ
+  resolved_at TIMESTAMPTZ
+  status VARCHAR(20)
+  message TEXT
+}
+
+table(metric_definitions) {
+  primary_key(id) UUID
+  metric_name VARCHAR(100)
+  description TEXT
+  data_type VARCHAR(20)
+  unit VARCHAR(20)
+  min_value DOUBLE PRECISION
+  max_value DOUBLE PRECISION
+  default_aggregation VARCHAR(20)
+  retention_days INTEGER
+  is_system BOOLEAN
+}
+
+table(telemetry_events) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  event_type VARCHAR(100)
+  event_data JSONB
+  severity VARCHAR(20)
+  timestamp TIMESTAMPTZ
+  processed_at TIMESTAMPTZ
+}
+
+' Create hypertable for time-series data
+note right of telemetry_metrics
+  Hypertable for TimescaleDB
+  Partitioned by time
+  Indexed by (device_id, metric_name, time)
+end note
+
+' Relationships
+devices ||--o{ telemetry_metrics : "generates_metrics"
+devices ||--o{ telemetry_aggregations : "has_aggregations"
+devices ||--o{ telemetry_alerts : "has_alerts"
+devices ||--o{ telemetry_events : "generates_events"
+metric_definitions }o--o{ telemetry_metrics : "defines"
+
+@enduml

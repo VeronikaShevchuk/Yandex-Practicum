@@ -1,0 +1,328 @@
+openapi: 3.0.3
+info:
+  title: Device Service API
+  description: API для управления устройствами умного дома
+  version: 1.0.0
+servers:
+  - url: http://localhost:8001
+    description: Development server
+
+paths:
+  /devices:
+    get:
+      summary: Получить список устройств пользователя
+      description: Возвращает список всех устройств, доступных пользователю
+      parameters:
+        - name: house_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: device_type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: online
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Зарегистрировать новое устройство
+      description: Регистрация нового устройства в системе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCreateRequest'
+      responses:
+        '201':
+          description: Устройство успешно создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '409':
+          description: Устройство с таким serial_number уже существует
+
+  /devices/{device_id}:
+    get:
+      summary: Получить информацию об устройстве
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Обновить информацию об устройстве
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceUpdateRequest'
+      responses:
+        '200':
+          description: Устройство успешно обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /devices/{device_id}/control:
+    post:
+      summary: Отправить команду устройству
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceControlRequest'
+      responses:
+        '202':
+          description: Команда принята к исполнению
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceControlResponse'
+        '400':
+          description: Некорректная команда или устройство не поддерживает команду
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '423':
+          description: Устройство недоступно (offline)
+
+  /devices/{device_id}/state:
+    get:
+      summary: Получить текущее состояние устройства
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceStateResponse'
+
+components:
+  schemas:
+    DeviceCreateRequest:
+      type: object
+      required:
+        - house_id
+        - device_type_id
+        - name
+        - serial_number
+      properties:
+        house_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        device_type_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174001"
+        name:
+          type: string
+          example: "Умный термостат в гостиной"
+        serial_number:
+          type: string
+          example: "SN123456789"
+        description:
+          type: string
+          example: "Термостат для управления отоплением"
+        location:
+          type: string
+          example: "Гостиная"
+        config:
+          type: object
+          example: {"temperature_unit": "celsius"}
+
+    DeviceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174002"
+        house_id:
+          type: string
+          format: uuid
+        device_type_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        serial_number:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, maintenance]
+        online:
+          type: boolean
+        firmware_version:
+          type: string
+        ip_address:
+          type: string
+        last_seen_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceCapability'
+
+    DeviceControlRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          type: string
+          example: "turn_on"
+        parameters:
+          type: object
+          example: {"temperature": 22.5}
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+
+    DeviceControlResponse:
+      type: object
+      properties:
+        command_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174003"
+        status:
+          type: string
+          enum: [accepted, executing, completed, failed]
+        message:
+          type: string
+          example: "Команда принята к исполнению"
+
+    DeviceListResponse:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceResponse'
+        total:
+          type: integer
+          example: 5
+        page:
+          type: integer
+          example: 1
+        page_size:
+          type: integer
+          example: 20
+
+    DeviceCapability:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "switch"
+        name:
+          type: string
+          example: "power"
+        supported_commands:
+          type: array
+          items:
+            type: string
+          example: ["turn_on", "turn_off", "toggle"]
+
+  responses:
+    UnauthorizedError:
+      description: Неавторизованный доступ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequestError:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "not_found"
+        message:
+          type: string
+          example: "Устройство не найдено"
+        details:
+          type: object
