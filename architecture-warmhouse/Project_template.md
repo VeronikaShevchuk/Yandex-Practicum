@@ -183,11 +183,14 @@
 
 ### 1. Тип API
 
-Укажите, какой тип API вы будете использовать для взаимодействия микросервисов. Объясните своё решение.
+В приложении предлагаю использовать гибридный подход с использованием синхронных интеграций при работе с устройствами и запросе данных по ним и асинхронных запросов при сборе телеметрии и отправке уведомлений. 
+Для Device Service предлагаю использовать синхронное взаимодействие REST API а для обработки событий от устройств AsyncAPI + Rbbit MQ
 
 ### 2. Документация API
 
-Здесь приложите ссылки на документацию API для микросервисов, которые вы спроектировали в первой части проектной работы. Для документирования используйте Swagger/OpenAPI или AsyncAPI.
+[Device Service API](architecture-warmhouse\apps\smart_home\services\OpenAPISpecification_Device.yaml)
+
+[Telemetry Service API](architecture-warmhouse\apps\smart_home\services\OpenAPISpecification_TelemetryService.yaml)
 
 # Задание 5. Работа с docker и docker-compose
 
