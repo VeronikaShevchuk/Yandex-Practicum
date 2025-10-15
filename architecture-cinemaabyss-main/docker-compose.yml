@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres_password
       POSTGRES_DB: cinemaabyss
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -98,6 +98,12 @@ services:
       KAFKA_BROKERS: kafka:9092
     networks:
       - cinemaabyss-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/events/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Proxy Service (API Gateway)
   proxy-service:
@@ -135,6 +141,12 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     networks:
       - cinemaabyss-network
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres-data:
