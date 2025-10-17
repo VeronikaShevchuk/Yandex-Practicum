@@ -1,0 +1,26 @@
+@startuml DeviceServiceComponents
+!include architecture-warmhouse\diagrams\templates\C4_Component.puml
+
+title Component Diagram - Device Service
+
+
+Container_Boundary(device_service, "Device Service") {
+    Component(api, "Device API", "RESTAPI", "Внешний API интерфейс")
+    Component(registry, "Device Registry", "Python", "Регистрация устройств")
+    Component(manager, "Device Manager", "Python", "Управление состоянием")
+    Component(protocol, "Protocol Adapter", "Python", "Адаптация протоколов")
+    Component(cache, "Device Cache", "Redis", "Кэш состояний")
+    
+    Rel(api, registry, "Использует")
+    Rel(api, manager, "Использует")
+    Rel(manager, protocol, "Использует")
+    Rel(manager, cache, "Чтение/запись")
+    Rel(registry, cache, "Обновление кэша")
+}
+
+ComponentDb(device_db, "Device Database", "PostgreSQL", "Постоянное хранение")
+
+Rel(registry, device_db, "SQL")
+Rel(manager, device_db, "SQL")
+
+@enduml

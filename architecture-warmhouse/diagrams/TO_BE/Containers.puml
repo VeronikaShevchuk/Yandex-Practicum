@@ -1,0 +1,84 @@
+@startuml ContainerDiagram
+!include architecture-warmhouse\diagrams\templates\C4_Container.puml
+
+title Container Diagram приложения "Тёплый дом"
+
+Person(owner, "Пользователь", "Управляет умным домом")
+Person(installer, "Администратор", "Настраивает устройства")
+
+System_Boundary(ecosystem, "Экосистема Умного Дома") {
+    Container(web, "Веб-приложение", "React/Vue.js", "Browser")
+    Container(mobile, "Мобильное приложение", "React Native", "iOS/Android")
+    
+    Container(gateway, "API Gateway", "Nginx/Kong", "Маршрутизация, аутентификация, кэширование")
+    
+    Container(auth_service, "Auth Service", "Python", "Аутентификация, JWT, OAuth2")
+    Container(user_service, "User Service", "Python", "Пользователи и права доступа")
+    Container(device_service, "Device Service", "Python", "Управление устройствами")
+    Container(telemetry_service, "Telemetry Service", "Python", "Телеметрия")
+    Container(automation_service, "Automation Service", "Python", "Сценарии и правила автоматизации")
+    Container(notification_service, "Notification Service", "Python", "Уведомления")
+    
+    ContainerDb(auth_db, "Auth Database", "PostgreSQL", "Учетные данные, сессии")
+    ContainerDb(user_db, "User Database", "PostgreSQL", "Профили, настройки")
+    ContainerDb(device_db, "Device Database", "PostgreSQL", "Реестр устройств, конфигурации")
+    ContainerDb(telemetry_db, "TimeSeries DB", "PostgreSQL", "Метрики")
+    ContainerDb(automation_db, "Automation DB", "PostgreSQL", "Правила, сценарии, триггеры")
+    ContainerDb(notification_db, "Notification DB", "PostgreSQL", "Уведомления, шаблоны, настройки")
+    
+    ContainerQueue(message_bus, "Message Bus", "RabbitMQ", "Асинхронные события")
+    Container(cache, "Cache Layer", "Redis", "Кэширование данных")
+}
+
+System_Ext(device1, "Датчик температуры", "Устройство партнёра")
+System_Ext(device2, "Умный выключатель", "Устройство партнёра")
+System_Ext(device3, "Умные ворота", "Устройство партнёра")
+System_Ext(smtp, "SMTP Сервер", "Отправка email")
+System_Ext(push, "Push Сервис", "FCM/APNS для мобильных уведомлений")
+
+' Connections - REST API
+Rel(owner, web, "Использует", "HTTPS")
+Rel(owner, mobile, "Использует", "HTTPS")
+Rel(installer, mobile, "Использует", "HTTPS")
+
+Rel(web, gateway, "REST API", "HTTPS/JSON")
+Rel(mobile, gateway, "REST API", "HTTPS/JSON")
+
+Rel(gateway, auth_service, "REST API", "HTTP/JSON")
+Rel(gateway, user_service, "REST API", "HTTP/JSON")
+Rel(gateway, device_service, "REST API", "HTTP/JSON")
+Rel(gateway, telemetry_service, "REST API", "HTTP/JSON")
+Rel(gateway, automation_service, "REST API", "HTTP/JSON")
+Rel(gateway, notification_service, "REST API", "HTTP/JSON")
+
+' Service-to-service REST communication
+Rel(auth_service, user_service, "REST API", "Валидация пользователей")
+Rel(device_service, telemetry_service, "REST API", "Регистрация метрик устройств")
+Rel(automation_service, device_service, "REST API", "Управление устройствами по правилам")
+Rel(automation_service, notification_service, "REST API", "Триггеры уведомлений")
+
+' Message bus for async events (сохраняем для событий)
+Rel(telemetry_service, message_bus, "AMQP", "Публикует события телеметрии")
+Rel(automation_service, message_bus, "AMQP", "Подписывается на события устройств")
+Rel(notification_service, message_bus, "AMQP", "Подписывается на события уведомлений")
+
+' Database connections
+Rel(auth_service, auth_db, "SQL", "PostgreSQL")
+Rel(user_service, user_db, "SQL", "PostgreSQL")
+Rel(device_service, device_db, "SQL", "PostgreSQL")
+Rel(telemetry_service, telemetry_db, "SQL", "PostgreSQL")
+Rel(automation_service, automation_db, "SQL", "PostgreSQL")
+Rel(notification_service, notification_db, "SQL", "PostgreSQL")
+
+' Cache connections
+Rel(auth_service, cache, "Redis Protocol", "Кэш сессий")
+Rel(device_service, cache, "Redis Protocol", "Кэш состояний устройств")
+
+' External systems
+Rel(telemetry_service, device1, "MQTT/HTTP", "Получает телеметрию")
+Rel(device_service, device2, "MQTT/HTTP", "Управляет устройствами")
+Rel(device_service, device3, "MQTT/HTTP", "Управляет устройствами")
+Rel(notification_service, smtp, "SMTP", "Отправка email")
+Rel(notification_service, push, "HTTP", "Push уведомления")
+
+@enduml

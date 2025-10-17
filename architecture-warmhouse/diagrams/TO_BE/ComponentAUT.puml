@@ -1,0 +1,30 @@
+@startuml AutomationServiceComponents
+!include architecture-warmhouse\diagrams\templates\C4_Component.puml
+
+title Component Diagram - Automation Service
+
+
+Container_Boundary(automation_service, "Automation Service") {
+    Component(api, "Automation  API", "RESTAPI", "API для управления сценариями")
+    Component(engine, "Rules Engine", "Python", "Выполнение правил")
+    Component(trigger, "Trigger  Manager", "Python", "Обработка триггеров")
+    Component(action, "Action Executor", "Python", "Выполнение действий")
+    Component(scheduler, "Scheduler", "Python", "Планировщик")
+    
+    Rel(api, engine, "Использует")
+    Rel(engine, trigger, "Использует")
+    Rel(engine, action, "Использует")
+    Rel(engine, scheduler, "Использует")
+}
+
+ComponentDb(automation_db, "Automation DB", "PostgreSQL", "Сценарии")
+ComponentQueue(msg_bus, "Message Bus", "RabbitMQ", "События")
+Component(cache, "Redis", "Redis", "Кэш правил")
+
+Rel(engine, automation_db, "PostgreSQL", "Сохранение сценариев")
+Rel(scheduler, automation_db, "PostgreSQL", "Сохранение сценариев")
+Rel(trigger, msg_bus, "RabbitMQ", "Подписка на события")
+Rel(action, msg_bus, "RabbitMQ", "Публикация команд")
+Rel(engine, cache, "Redis", "Кэш компилированных правил")
+
+@enduml

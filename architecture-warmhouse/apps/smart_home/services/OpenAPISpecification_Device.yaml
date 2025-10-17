@@ -1,0 +1,331 @@
+openapi: 3.0.0
+info:
+  title: Device Management Service API
+  description: API для управления устройствами умного дома
+  version: 1.0.0
+  contact:
+    name: Smart Home Team
+    email: dev@smarthome.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Проверка работоспособности сервиса
+      responses:
+        '200':
+          description: Сервис работает
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+
+  /sensors:
+    get:
+      summary: Получить все сенсоры
+      description: Возвращает список всех зарегистрированных сенсоров
+      parameters:
+        - name: location
+          in: query
+          schema:
+            type: string
+          required: false
+          description: Фильтр по местоположению
+        - name: type
+          in: query
+          schema:
+            type: string
+          required: false
+          description: Фильтр по типу сенсора
+      responses:
+        '200':
+          description: Успешное получение списка сенсоров
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sensors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sensor'
+                example:
+                  sensors:
+                    - id: 1
+                      name: "Living Room Temperature"
+                      type: "temperature"
+                      location: "Living Room"
+                      unit: "°C"
+                      value: 22.5
+                      status: "active"
+                      last_updated: "2024-01-15T10:25:00Z"
+
+    post:
+      summary: Создать новый сенсор
+      description: Регистрация нового сенсора в системе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSensorRequest'
+            example:
+              name: "Kitchen Humidity"
+              type: "humidity"
+              location: "Kitchen"
+              unit: "%"
+      responses:
+        '201':
+          description: Сенсор успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '400':
+          description: Неверные данные запроса
+        '409':
+          description: Сенсор с таким именем уже существует
+
+  /sensors/{sensorId}:
+    get:
+      summary: Получить сенсор по ID
+      description: Возвращает информацию о конкретном сенсоре
+      parameters:
+        - name: sensorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID сенсора
+      responses:
+        '200':
+          description: Успешное получение сенсора
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '404':
+          description: Сенсор не найден
+
+    put:
+      summary: Обновить сенсор
+      description: Полное обновление информации о сенсоре
+      parameters:
+        - name: sensorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSensorRequest'
+            example:
+              name: "Updated Living Room Temperature"
+              type: "temperature"
+              location: "Living Room"
+              unit: "°C"
+      responses:
+        '200':
+          description: Сенсор успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '404':
+          description: Сенсор не найден
+
+    delete:
+      summary: Удалить сенсор
+      description: Удаление сенсора из системы
+      parameters:
+        - name: sensorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Сенсор успешно удален
+        '404':
+          description: Сенсор не найден
+
+  /sensors/{sensorId}/value:
+    patch:
+      summary: Обновить значение сенсора
+      description: Обновление текущего значения и статуса сенсора
+      parameters:
+        - name: sensorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSensorValueRequest'
+            example:
+              value: 23.1
+              status: "active"
+      responses:
+        '200':
+          description: Значение успешно обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '404':
+          description: Сенсор не найден
+
+components:
+  schemas:
+    Sensor:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - location
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "Living Room Temperature"
+        type:
+          type: string
+          enum: [temperature, humidity, motion, light, door, window]
+          example: "temperature"
+        location:
+          type: string
+          example: "Living Room"
+        unit:
+          type: string
+          example: "°C"
+        value:
+          type: number
+          format: float
+          nullable: true
+          example: 22.5
+        status:
+          type: string
+          enum: [active, inactive, error, offline]
+          example: "active"
+        last_updated:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:25:00Z"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-10T08:00:00Z"
+
+    CreateSensorRequest:
+      type: object
+      required:
+        - name
+        - type
+        - location
+      properties:
+        name:
+          type: string
+          example: "Living Room Temperature"
+        type:
+          type: string
+          enum: [temperature, humidity, motion, light, door, window]
+          example: "temperature"
+        location:
+          type: string
+          example: "Living Room"
+        unit:
+          type: string
+          example: "°C"
+
+    UpdateSensorRequest:
+      type: object
+      required:
+        - name
+        - type
+        - location
+      properties:
+        name:
+          type: string
+          example: "Updated Living Room Temperature"
+        type:
+          type: string
+          enum: [temperature, humidity, motion, light, door, window]
+          example: "temperature"
+        location:
+          type: string
+          example: "Living Room"
+        unit:
+          type: string
+          example: "°C"
+
+    UpdateSensorValueRequest:
+      type: object
+      required:
+        - value
+        - status
+      properties:
+        value:
+          type: number
+          format: float
+          example: 22.5
+        status:
+          type: string
+          enum: [active, inactive, error, offline]
+          example: "active"
+
+  responses:
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Sensor not found"
+              code:
+                type: string
+                example: "SENSOR_NOT_FOUND"
+
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid input data"
+              details:
+                type: array
+                items:
+                  type: string

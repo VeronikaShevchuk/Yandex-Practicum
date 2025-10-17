@@ -1,0 +1,75 @@
+@startuml UserService_ERD
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+
+hide methods
+hide stereotypes
+
+table(users) {
+  primary_key(id) UUID
+  email VARCHAR(255)
+  password_hash VARCHAR(255)
+  first_name VARCHAR(100)
+  last_name VARCHAR(100)
+  phone VARCHAR(20)
+  avatar_url VARCHAR(255)
+  timezone VARCHAR(50)
+  locale VARCHAR(10)
+  email_verified BOOLEAN
+  phone_verified BOOLEAN
+  status VARCHAR(20)
+  last_login_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ
+}
+
+table(user_profiles) {
+  primary_key(user_id) UUID
+  date_of_birth DATE
+  address TEXT
+  emergency_contact_name VARCHAR(100)
+  emergency_contact_phone VARCHAR(20)
+  notifications_enabled BOOLEAN
+  marketing_emails BOOLEAN
+  created_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ
+}
+
+table(user_roles) {
+  primary_key(id) UUID
+  name VARCHAR(50)
+  description TEXT
+  permissions JSONB
+  is_system BOOLEAN
+  created_at TIMESTAMPTZ
+}
+
+table(user_role_assignments) {
+  primary_key(id) UUID
+  foreign_key(user_id) UUID
+  foreign_key(role_id) UUID
+  assigned_by UUID
+  assigned_at TIMESTAMPTZ
+  expires_at TIMESTAMPTZ
+}
+
+table(user_sessions) {
+  primary_key(id) UUID
+  foreign_key(user_id) UUID
+  device_type VARCHAR(50)
+  device_info JSONB
+  ip_address INET
+  user_agent TEXT
+  login_at TIMESTAMPTZ
+  last_activity_at TIMESTAMPTZ
+  expires_at TIMESTAMPTZ
+  logout_at TIMESTAMPTZ
+}
+
+' Relationships
+users ||--|| user_profiles : has
+users ||--o{ user_role_assignments : "has_roles"
+user_roles ||--o{ user_role_assignments : "assigned_to"
+users ||--o{ user_sessions : "has_sessions"
+
+@enduml

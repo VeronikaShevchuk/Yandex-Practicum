@@ -1,0 +1,35 @@
+@startuml TelemetryServiceComponents
+!include architecture-warmhouse\diagrams\templates\C4_Component.puml
+
+title Component Diagram - Telemetry Service
+
+
+Container_Boundary(telemetry_service, "Telemetry Service"){
+    Component(api_controller, "REST API controller", "RestAPI", "Запросы телеметрии")
+    Component(data_ingestion, "Data Ingestion Manager", "Python", "Прием и обработка данных")
+    Component(metrics_processor, "Metrics Processor", "Python", "Обработка метрик")
+    Component(query_engine, "Query Engine", "Python", "Поиск и фильтрация")
+    Component(alert_manager, "Alert Manager", "Python", "Управление алертами")
+    Component(storage_manager, "Storage Manager", "Python", "Управление хранилищем")
+
+    Rel(api_controller, data_ingestion, "Прием данных")
+    Rel(api_controller, query_engine, "Запросы данных")
+    Rel(data_ingestion, metrics_processor, "Обработка входящих данных")
+    Rel(metrics_processor, alert_manager, "Проверка алертов")
+    Rel(storage_manager, metrics_processor, "Управление хранилищем")
+
+}
+
+ComponentDb(telemetry_db, "TimeSeries DB", "PostgreSQL", "Метрики")
+Component(cache, "Redis Cache", "Redis", "Кэш агрегаций, горячие данные")
+ComponentQueue(message_bus, "Message Bus", "RabbitMQ", "События телеметрии")
+Component_Ext(device_service, "Device Service", "REST API", "Валидация устройств")
+
+Rel(metrics_processor, telemetry_db, "SQLAlchemy", "Сохранение метрик")
+Rel(query_engine, telemetry_db, "SQLAlchemy", "Запросы данных")
+Rel(metrics_processor, cache, "redis-py", "Кэш агрегаций")
+Rel(alert_manager, message_bus, "pika", "Публикация алертов")
+Rel(data_ingestion, device_service, "REST API", "Валидация устройств")
+
+@enduml
+

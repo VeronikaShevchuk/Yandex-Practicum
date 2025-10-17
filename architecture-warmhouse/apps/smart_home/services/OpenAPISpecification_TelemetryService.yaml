@@ -1,0 +1,148 @@
+asyncapi: 2.0.0
+info:
+  title: Telemetry Service Events API
+  version: 1.0.0
+  description: Асинхронный API для событий телеметрии умного дома
+
+servers:
+  production:
+    url: rabbitmq.example.com
+    protocol: amqp
+    description: Production RabbitMQ server
+  development:
+    url: localhost:5672
+    protocol: amqp
+    description: Development RabbitMQ server
+
+channels:
+  telemetry.sensor.data:
+    description: Канал для получения данных телеметрии от сенсоров
+    subscribe:
+      summary: Подписка на данные телеметрии
+      message:
+        $ref: '#/components/messages/SensorDataMessage'
+
+  telemetry.sensor.status:
+    description: Канал для событий изменения статуса сенсоров
+    subscribe:
+      summary: Подписка на события статуса
+      message:
+        $ref: '#/components/messages/SensorStatusMessage'
+
+  telemetry.device.command:
+    description: Канал для отправки команд устройствам
+    publish:
+      summary: Публикация команд устройствам
+      message:
+        $ref: '#/components/messages/DeviceCommandMessage'
+
+components:
+  messages:
+    SensorDataMessage:
+      name: sensorDataMessage
+      summary: Сообщение с данными телеметрии
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SensorData'
+
+    SensorStatusMessage:
+      name: sensorStatusMessage
+      summary: Сообщение об изменении статуса сенсора
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SensorStatus'
+
+    DeviceCommandMessage:
+      name: deviceCommandMessage
+      summary: Команда для устройства
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeviceCommand'
+
+  schemas:
+    SensorData:
+      type: object
+      required:
+        - sensor_id
+        - value
+        - timestamp
+      properties:
+        sensor_id:
+          type: integer
+          format: int64
+          description: ID сенсора
+          example: 1
+        value:
+          type: number
+          format: float
+          description: Значение измерения
+          example: 22.5
+        timestamp:
+          type: string
+          format: date-time
+          description: Время измерения
+          example: "2024-01-15T10:30:00Z"
+        metadata:
+          type: object
+          description: Дополнительные метаданные
+          example:
+            battery_level: 85
+            signal_strength: -45
+
+    SensorStatus:
+      type: object
+      required:
+        - sensor_id
+        - status
+        - timestamp
+      properties:
+        sensor_id:
+          type: integer
+          format: int64
+          example: 1
+        status:
+          type: string
+          enum: [online, offline, error, maintenance]
+          example: "online"
+        previous_status:
+          type: string
+          enum: [online, offline, error, maintenance]
+          example: "offline"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        reason:
+          type: string
+          description: Причина изменения статуса
+          example: "manual_activation"
+
+    DeviceCommand:
+      type: object
+      required:
+        - device_id
+        - command
+        - timestamp
+      properties:
+        device_id:
+          type: integer
+          format: int64
+          example: 2
+        command:
+          type: string
+          description: Тип команды
+          example: "turn_on"
+        parameters:
+          type: object
+          description: Параметры команды
+          example:
+            brightness: 75
+            color_temp: 4000
+        correlation_id:
+          type: string
+          description: ID для отслеживания ответа
+          example: "cmd-12345"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"

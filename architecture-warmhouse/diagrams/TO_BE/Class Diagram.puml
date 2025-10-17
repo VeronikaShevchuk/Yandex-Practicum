@@ -1,0 +1,48 @@
+@startuml DeviceServiceClasses
+class DeviceController {
+    - device_service: DeviceService
+    + get_devices()
+    + control_device()
+    + register_device()
+}
+
+class DeviceService {
+    - repository: DeviceRepository
+    - cache: RedisCache
+    - mqtt_client: MQTTClient
+    + get_user_devices()
+    + control_device()
+    + register_device()
+}
+
+class DeviceRepository {
+    - session: AsyncSession
+    + find_by_id()
+    + find_by_user()
+    + save()
+    + update()
+}
+
+class Device {
+    - id: UUID
+    - name: str
+    - type: DeviceType
+    - status: DeviceStatus
+    - user_id: UUID
+    + control()
+    + update_status()
+}
+
+class MQTTClient {
+    - client: paho.Client
+    + connect()
+    + publish()
+    + subscribe()
+}
+
+DeviceController --> DeviceService
+DeviceService --> DeviceRepository
+DeviceService --> MQTTClient
+DeviceRepository --> Device
+
+@enduml

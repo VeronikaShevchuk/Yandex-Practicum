@@ -1,0 +1,32 @@
+@startuml TargetSystemContext
+!include architecture-warmhouse\diagrams\templates\C4_Context.puml
+
+Person(owner, "Пользователь", "Управляет умным домом, настраивает устройства")
+Person(installer, "Администратор", "Настраивает устройства для клиентов")
+System_Boundary(ecosystem, "Экосистема Умного Дома") {
+    System(frontend, "Веб-приложение", "web")
+    System(mobile_app, "Мобильное приложение", "iOS/Android приложение")
+    System(api_gateway, "API Gateway", "Единая точка входа для API")
+}
+
+System_Ext(device1, "Датчик температуры", "Устройство партнёра")
+System_Ext(device2, "Умный выключатель", "Устройство партнёра") 
+System_Ext(device3, "Умные ворота", "Устройство партнёра")
+System_Ext(partnerSystem, "Партнерская система", "Система пертнеров")
+System_Ext(internet, "Интернет", "Интернет")
+
+Rel(owner, frontend, "Управляет устройствами через браузер")
+Rel(owner, mobile_app, "Управляет домом с телефона")
+Rel(installer, mobile_app, "Настраивает устройства при установке")
+
+Rel(api_gateway, device1, "Обменивается данными по стандартному протоколу")
+Rel(api_gateway, device2, "Обменивается данными по стандартному протоколу")
+Rel(api_gateway, device3, "Обменивается данными по стандартному протоколу")
+Rel(api_gateway, partnerSystem, "Обменивается данными по стандартному протоколу")
+
+Rel(device1, internet, "Подключается через")
+Rel(device2, internet, "Подключается через")
+Rel(device3, internet, "Подключается через")
+Rel(partnerSystem, internet, "Подключается через")
+
+@enduml

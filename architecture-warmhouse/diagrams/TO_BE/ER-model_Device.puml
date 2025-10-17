@@ -1,0 +1,104 @@
+@startuml DeviceService_ERD
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+
+hide methods
+hide stereotypes
+
+table(devices) {
+  primary_key(id) UUID
+  foreign_key(house_id) UUID
+  foreign_key(device_type_id) UUID
+  foreign_key(partner_id) UUID
+  name VARCHAR(255)
+  description TEXT
+  serial_number VARCHAR(255)
+  partner_device_id VARCHAR(255)
+  status VARCHAR(20)
+  online BOOLEAN
+  firmware_version VARCHAR(50)
+  ip_address INET
+  mac_address MACADDR
+  location VARCHAR(100)
+  config JSONB
+  metadata JSONB
+  last_seen_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ
+  updated_at TIMESTAMPTZ
+}
+
+table(device_types) {
+  primary_key(id) UUID
+  name VARCHAR(100)
+  category VARCHAR(50)
+  subcategory VARCHAR(50)
+  manufacturer VARCHAR(100)
+  model VARCHAR(100)
+  capabilities JSONB
+  config_schema JSONB
+  icon VARCHAR(50)
+  description TEXT
+  is_approved BOOLEAN
+  created_at TIMESTAMPTZ
+}
+
+table(device_capabilities) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  capability_type VARCHAR(50)
+  capability_name VARCHAR(100)
+  description TEXT
+  config JSONB
+  supported_commands JSONB
+  min_value DECIMAL
+  max_value DECIMAL
+  step DECIMAL
+  unit VARCHAR(20)
+  is_readonly BOOLEAN
+  created_at TIMESTAMPTZ
+}
+
+table(device_states) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  state_type VARCHAR(50)
+  state_value JSONB
+  source VARCHAR(50)
+  timestamp TIMESTAMPTZ
+  updated_at TIMESTAMPTZ
+}
+
+table(device_commands) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  command VARCHAR(100)
+  parameters JSONB
+  status VARCHAR(20)
+  sent_by UUID
+  sent_at TIMESTAMPTZ
+  executed_at TIMESTAMPTZ
+  response JSONB
+  error_message TEXT
+  retry_count INTEGER
+}
+
+table(device_connections) {
+  primary_key(id) UUID
+  foreign_key(device_id) UUID
+  connection_type VARCHAR(20)
+  protocol VARCHAR(20)
+  endpoint VARCHAR(255)
+  credentials JSONB
+  status VARCHAR(20)
+  last_connected_at TIMESTAMPTZ
+  last_disconnected_at TIMESTAMPTZ
+}
+
+' Relationships
+devices ||--|| device_types : "is_type"
+devices ||--o{ device_capabilities : "has_capabilities"
+devices ||--o{ device_states : "has_states"
+devices ||--o{ device_commands : "receives_commands"
+devices ||--o{ device_connections : "has_connections"
+
+@enduml
