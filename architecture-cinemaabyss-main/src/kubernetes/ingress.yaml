@@ -5,9 +5,11 @@ metadata:
   namespace: cinemaabyss
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
+  ingressClassName: nginx
   rules:
-  - host: cinemaabyss.local
+  - host: cinemaabyss.example.com
     http:
       paths:
       - path: /
@@ -38,3 +40,10 @@ spec:
             name: events-service
             port:
               number: 8082
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: proxy-service
+            port:
+              number: 8000

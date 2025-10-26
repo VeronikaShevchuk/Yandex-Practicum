@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: proxy-service
   namespace: cinemaabyss
+  labels:
+    app: proxy-service
 spec:
   replicas: 2
   selector:
@@ -14,8 +16,8 @@ spec:
         app: proxy-service
     spec:
       containers:
-      - name: proxy
-        image: cinemaabyss/proxy:latest
+      - name: proxy-service
+        image: ghcr.io/veronikashevchuk/architecture-cinemaabyss-main/proxy:latest
         ports:
         - containerPort: 8000
         env:
@@ -25,8 +27,12 @@ spec:
           value: "http://monolith-service:8080"
         - name: MOVIES_SERVICE_URL
           value: "http://movies-service:8081"
+        - name: EVENTS_SERVICE_URL
+          value: "http://events-service:8082"
         - name: PORT
           value: "8000"
+        - name: GRADUAL_MIGRATION
+          value: "true"
         resources:
           requests:
             memory: "128Mi"
@@ -46,17 +52,22 @@ spec:
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
-
+      imagePullSecrets:
+      - name: ghcr-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: proxy-service
   namespace: cinemaabyss
+  labels:
+    app: proxy-service
 spec:
   selector:
     app: proxy-service
   ports:
-  - port: 8000
+  - name: http
+    port: 8000
     targetPort: 8000
+    protocol: TCP
   type: ClusterIP

@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: events-service
   namespace: cinemaabyss
+  labels:
+    app: events-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: events-service
@@ -14,8 +16,8 @@ spec:
         app: events-service
     spec:
       containers:
-      - name: events
-        image: cinemaabyss/events:latest
+      - name: events-service
+        image: ghcr.io/veronikashevchuk/architecture-cinemaabyss-main/events-service:latest
         ports:
         - containerPort: 8082
         env:
@@ -42,17 +44,28 @@ spec:
             port: 8082
           initialDelaySeconds: 30
           periodSeconds: 10
-
+        startupProbe:
+          httpGet:
+            path: /api/events/health
+            port: 8082
+          failureThreshold: 30
+          periodSeconds: 10
+      imagePullSecrets:
+      - name: ghcr-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: events-service
   namespace: cinemaabyss
+  labels:
+    app: events-service
 spec:
   selector:
     app: events-service
   ports:
-  - port: 8082
+  - name: http
+    port: 8082
     targetPort: 8082
+    protocol: TCP
   type: ClusterIP
