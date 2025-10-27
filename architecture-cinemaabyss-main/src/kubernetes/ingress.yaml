@@ -23,7 +23,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: monolith-service
+            name: monolith
             port:
               number: 8080
       - path: /api/movies
