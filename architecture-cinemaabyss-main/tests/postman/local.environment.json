@@ -1,0 +1,61 @@
+{
+  "id": "cinemaabyss-local",
+  "name": "CinemaAbyss Local Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://cinemaabyss.local",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "moviesServiceUrl",
+      "value": "http://cinemaabyss.local/api/movies",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "eventsServiceUrl",
+      "value": "http://cinemaabyss.local/api/events",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "proxyServiceUrl",
+      "value": "http://cinemaabyss.local",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "movieId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "msMovieId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "subscriptionId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
